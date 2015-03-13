@@ -93,6 +93,7 @@ int main(int argc, char **argv){
 		default:
 			break;
 	}*/
+
 	plano(10.0, 10.0,"plano.3d");
 	paralelipipedo(12,12,12,"paralelipipedo.3d");
 }
