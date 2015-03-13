@@ -10,7 +10,6 @@ void plano(float largura, float comprimento){
 	fprintf(f, "%f %f %f\n", comprimento / 2, 0.0, -largura / 2);
 	fprintf(f, "%f %f %f\n", -comprimento / 2, 0.0, largura / 2);
 
-
 	fprintf(f, "%f %f %f\n", comprimento / 2, 0.0, largura / 2);
 	fprintf(f, "%f %f %f\n", -comprimento / 2, 0.0, -largura / 2);
 	fprintf(f, "%f %f %f\n", -comprimento / 2, 0.0, largura / 2);
