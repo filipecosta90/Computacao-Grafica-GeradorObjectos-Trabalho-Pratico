@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <string>
 
 void plano(float largura, float comprimento, char *file_name){
 
@@ -86,9 +87,11 @@ void paralelipipedo(float largura, float comprimento, float altura, char *file_n
 	fclose(filename);
 }
 
-int main(int argc, char **argv){
-	/*switch (argv[1]){
-		case "plano": plano(argv[2], argv[3], argv[4]);
+int main(int argc, char *argv[]){
+	/*switch (strcmp ( argv[0]){
+		case "plano" : plano(atof(argv[1]), atof(argv[2]), argv[3]);
+			break;
+		case "paralelipipedo": paralelipipedo(atof(argv[1]), atof(argv[2]), atof(argv[3]), argv[4]);
 			break;
 		default:
 			break;
