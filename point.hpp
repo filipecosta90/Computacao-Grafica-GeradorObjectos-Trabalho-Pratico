@@ -23,3 +23,4 @@ class Point {
 };
 
 #endif /* _POINT_H_INCLUDED_ */
+

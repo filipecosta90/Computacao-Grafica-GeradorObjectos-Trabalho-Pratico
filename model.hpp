@@ -20,7 +20,6 @@
 
 #include <vector>
 #include <string>
-#include <iostream>
 #include <math.h>
 
 
@@ -281,17 +280,17 @@ class Model {
       float raioAtual = raio;
       float raioAnterior;
       float alturaAtual;
-        int camadasInt = (int) camadas;
+      int camadasInt = (int) camadas;
       //desenha a parte superior da esfera
       for (int j = 0; j <= camadasInt / 2; j++){
         raioAnterior = raioAtual;
         alturaAtual = (alturaPorCamadas*(j + 1));
-          if (raio <= alturaAtual){
-              raioAtual = 0;
-          }
-          else{
-        raioAtual = sqrt((raio*raio) - (alturaAtual*alturaAtual));
-          }
+        if (raio <= alturaAtual){
+          raioAtual = 0;
+        }
+        else{
+          raioAtual = sqrt((raio*raio) - (alturaAtual*alturaAtual));
+        }
         desenhaTriangulosEntreCamadas(raioAnterior, raioAtual, (j)* alturaPorCamadas, (j + 1)* alturaPorCamadas, fatias, camadas, j, 1);
       }
       //desenha parte inferior da esfera
