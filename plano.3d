@@ -1,9 +1,0 @@
-<?xml version="1.0" ?>
-<plano>
-    <ponto x="6" y="0" z="4" />
-    <ponto x="6" y="0" z="-4" />
-    <ponto x="-6" y="0" z="-4" />
-    <ponto x="6" y="0" z="4" />
-    <ponto x="-6" y="0" z="-4" />
-    <ponto x="-6" y="0" z="4" />
-</plano>

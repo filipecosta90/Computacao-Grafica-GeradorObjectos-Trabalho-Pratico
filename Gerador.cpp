@@ -1,104 +1,31 @@
-#include <iostream>
-#include <fstream>
+/*
+ *  *  * Copyright (C) Bruno Gonçalves, Filipe Oliveira, José Sousa, Sérgio Caldas
+ *  *  * Copyright (C) aXXXXX, a57816, aXXXXX, a57779 
+ *  *  * Copyright (C) Computação Gráfica, Universidade do Minho, 2015
+ *  *  */
+
 #include <string>
+#include <iostream>
 #include "model.hpp"
 
-
-void plano(float largura, float comprimento, char *file_name){
-
-  FILE* filename;
-
-  filename = fopen(file_name, "w");
-
-  fprintf(filename, "%f %f %f\n", comprimento / 2, 0.0, largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, 0.0, -largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, 0.0, largura / 2);
-
-  fprintf(filename, "%f %f %f\n", comprimento / 2, 0.0, largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, 0.0, -largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, 0.0, largura / 2);
-
-  fclose(filename);
+int main( int argc, char* argv[] ){
+  Model model(argv[1]);
+  if( strcmp ( argv[1] , "plano" ) == 0  ){
+    model.createPlan( atof ( argv[2] ) , atof ( argv[3] ) );
+    model.save(argv[4]);
+  }
+  if( strcmp ( argv[1] , "paralelipipedo" ) == 0  ){
+    model.createParallelepipe ( atof ( argv[2] ) , atof ( argv[3] ) , atof ( argv[4] )  );
+    model.save(argv[5]);
+  }
+  if( strcmp ( argv[1] , "cone" ) == 0  ){
+    model.createCone ( atof ( argv[2] ) , atof ( argv[3] ) , atof ( argv[4] ) , atof ( argv[5] )  );
+    model.save(argv[6]);
+  }
+  if( strcmp ( argv[1] , "esfera" ) == 0  ){
+    model.createSphere ( atof ( argv[2] ) , atof ( argv[3] ) , atof ( argv[4] )  );
+    model.save(argv[5]);
+  }
+  return 0;
 }
 
-void paralelipipedo(float largura, float comprimento, float altura, char *file_name){
-  FILE *filename;
-
-  filename = fopen(file_name, "w");
-
-  //Base 1
-  fprintf(filename, "%f %f %f\n", comprimento / 2, -altura / 2, -largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, -altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, altura / 2, largura / 2);
-
-  //Base 2 
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, -altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, -altura / 2, -largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, -altura / 2, -largura / 2);
-
-  //Lado 1.1
-  fprintf(filename, "%f %f %f\n", comprimento / 2, -altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, -altura / 2, -largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, altura / 2, largura / 2);
-
-  //Lado 1.2
-  fprintf(filename, "%f %f %f\n", comprimento / 2, -altura / 2, -largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, altura / 2, -largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, altura / 2, largura / 2);
-
-  //Topo 1
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, altura / 2, -largura / 2);
-
-  //Topo 2
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, altura / 2, -largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, altura / 2, -largura / 2);
-
-  //Lado 2.1
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, -altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, -altura / 2, -largura / 2);
-
-  //Lado 2.2
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, -altura / 2, -largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, altura / 2, -largura / 2);
-
-  //Frente 1
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, -altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, -altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, altura / 2, largura / 2);
-
-  //Frente 2
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, -altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, altura / 2, largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, altura / 2, largura / 2);
-
-  //Tras 1
-  fprintf(filename, "%f %f %f\n", comprimento / 2, -altura / 2, -largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, -altura / 2, -largura / 2);
-  fprintf(filename, "%f %f %f\n", comprimento / 2, altura / 2, -largura / 2);
-
-  //Tras 2
-  fprintf(filename, "%f %f %f\n", comprimento / 2, altura / 2, -largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, -altura / 2, -largura / 2);
-  fprintf(filename, "%f %f %f\n", -comprimento / 2, altura / 2, -largura / 2);
-
-  fclose(filename);
-}
-
-int main(int argc, char *argv[]){
-  /*switch (strcmp ( argv[0]){
-    case "plano" : plano(atof(argv[1]), atof(argv[2]), argv[3]);
-    break;
-    case "paralelipipedo": paralelipipedo(atof(argv[1]), atof(argv[2]), atof(argv[3]), argv[4]);
-    break;
-    default:
-    break;
-    }*/
-
-  plano(10.0, 10.0,"plano.3d");
-  paralelipipedo(12,12,12,"paralelipipedo.3d");
-}
