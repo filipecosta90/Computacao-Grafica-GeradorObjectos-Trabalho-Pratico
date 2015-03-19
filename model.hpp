@@ -82,10 +82,6 @@ class Model {
       doc.LinkEndChild( root );
       // block: pontos
       {
-
-        TiXmlElement * points = new TiXmlElement( "objecto" );
-        root->LinkEndChild( points );
-
         for ( it = pointsVector.begin(); it != pointsVector.end(); ++it)
         {
           std::cout << "entered iterator x:" << it->x << " y: "<< it->y << " z: "<< it->z << "\n";
@@ -93,7 +89,7 @@ class Model {
           pElem->SetAttribute ("x", it->x);
           pElem->SetAttribute ("y", it->y);
           pElem->SetAttribute ("z", it->z);
-          points->LinkEndChild( pElem );
+          root->LinkEndChild( pElem );
         }
       }
       doc.SaveFile(pFilename);
@@ -102,7 +98,7 @@ class Model {
     void createPlan( float length, float width ){
       addPoint( Point ( length/2 , 0.0 , width/2 ) );
       addPoint( Point ( length/2 , 0.0 , -width/2 ) );
-      addPoint( Point ( -length/2 , 0.0 , width/2 ) );
+      addPoint( Point ( -length/2 , 0.0 , -width/2 ) );
       addPoint( Point ( length/2 , 0.0 , width/2 ) );
       addPoint( Point ( -length/2 , 0.0 , -width/2 ) );
       addPoint( Point ( -length/2 , 0.0 , width/2 ) );
