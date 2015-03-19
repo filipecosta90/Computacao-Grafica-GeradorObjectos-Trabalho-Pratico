@@ -43,7 +43,6 @@ class Model {
     {
       TiXmlDocument doc( modelName.c_str() );
       if (!doc.LoadFile()) return;
-      std::cout << modelName.c_str()<<"\n";
       TiXmlHandle hDoc(&doc);
       TiXmlElement* pElem;
       TiXmlHandle hRoot(0);
@@ -60,7 +59,6 @@ class Model {
           pElem->QueryFloatAttribute("x", &pX);
           pElem->QueryFloatAttribute("y", &pY);
           pElem->QueryFloatAttribute("z", &pZ);
-          std::cout << pX << "\t" << pY << "\t" << pZ << "\n";
           if ( pX && pY && pZ ){
             Point newPoint ( pX, pY, pZ );
             addPoint ( newPoint );
@@ -76,7 +74,6 @@ class Model {
 
     void save( const char * pFilename )
     {
-      std::cout << "going to save " << modelName << " in: " << pFilename << "\n";
       TiXmlDocument doc;
       TiXmlElement* pElem;
       TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
@@ -88,7 +85,6 @@ class Model {
       {
         for ( it = pointsVector.begin(); it != pointsVector.end(); ++it)
         {
-          std::cout << "entered iterator x:" << it->x << " y: "<< it->y << " z: "<< it->z << "\n";
           pElem = new TiXmlElement ("ponto");
           pElem->SetDoubleAttribute ("x", it->x);
           pElem->SetDoubleAttribute ("y", it->y);
