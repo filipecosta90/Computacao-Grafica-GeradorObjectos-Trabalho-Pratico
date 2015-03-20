@@ -152,7 +152,6 @@ class Model {
 	}
 
 	void planoXY_Zfixo(float comprimento, float altura, float largura, float fatiasComprimento, float fatiasAltura, int factor){
-		// pôr instruções de desenho aqui
 
 		float distanciaFatiasAltura = altura / fatiasAltura;
 		float distanciaFatiasComprimento = comprimento / fatiasComprimento;
@@ -207,12 +206,10 @@ class Model {
 				}
 			}
 		}
-
-
 	}
 
 	void planoYZ_Xfixo(float comprimento, float altura, float largura, float fatiasAltura, float fatiasLargura, int factor){
-		// pôr instruções de desenho aqui
+		
 		float distanciaFatiasAltura = altura / fatiasAltura;
 		float distanciaFatiasLargura = largura / fatiasLargura;
 
@@ -265,7 +262,6 @@ class Model {
 				}
 			}
 		}
-
 	}
 
     void createParallelepipe ( float comprimento, float altura, float largura, float fatiasComprimento, float fatiasAltura, float fatiasLargura ){
@@ -300,6 +296,7 @@ class Model {
       float alturaPorCamadas = altura / camadas;
       float ReducaoRaioPorAltura = raio / camadas;
       float rad = 0.0;
+
       for (int k = 0; k < fatias; k++){
         //camadas do meio
         if (camadaNumero < (camadas - 1)){
@@ -367,6 +364,7 @@ class Model {
     }
 
     void desenhaBaseCircularCone(float raio, float altura, float fatias){
+
       // desenhar a base
       float alpha = 360 / fatias;
       float rad = 0.0;
@@ -387,8 +385,10 @@ class Model {
     void createCone(float raio, float altura, float fatias, float camadas){
       float alturaPorCamadas = altura / camadas;
       float ReducaoRaioPorAltura = raio / camadas;
+
       //desenha a base
       desenhaBaseCircularCone(raio, 0, fatias);
+
       //desenha as camadas laterias
       for (int j = 0; j <= camadas; j++){
         desenhaTriangulosEntreCamadas(raio - (j * ReducaoRaioPorAltura), raio - ((j + 1) * ReducaoRaioPorAltura), (j)* alturaPorCamadas, (j + 1)* alturaPorCamadas, fatias, camadas, j,1);
@@ -396,11 +396,13 @@ class Model {
     }
 
     void createSphere(float raio, float fatias, float camadas){
+
       float alturaPorCamadas = 2 * raio / (camadas);
       float raioAtual = raio;
       float raioAnterior;
       float alturaAtual;
       int camadasInt = (int) camadas;
+
       //desenha a parte superior da esfera
       for (int j = 0; j <= camadasInt / 2; j++){
         raioAnterior = raioAtual;
@@ -423,7 +425,6 @@ class Model {
         desenhaTriangulosEntreCamadas(raioAnterior, raioAtual, (j)* alturaPorCamadas, (j + 1)* alturaPorCamadas, fatias, camadas, j, -1);
       }
     }
-
 };
 
 #endif /* _MODEL_H_INCLUDED_ */
