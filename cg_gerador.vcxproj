@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(IncludePath);C:\toolkits\includes</IncludePath>
-    <LibraryPath>$(IncludeLibrary);C:\toolkits\libs</LibraryPath>
+    <LibraryPath>$(LibraryPath);C:\toolkits\libs</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>

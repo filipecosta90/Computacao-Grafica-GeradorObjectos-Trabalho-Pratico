@@ -9,13 +9,13 @@
 
 int main( int argc, char* argv[] ){
   Model model(argv[1]);
-  if( strcmp ( argv[1] , "plano" ) == 0  ){
-    model.createPlan( atof ( argv[2] ) , atof ( argv[3] ) );
-    model.save(argv[4]);
+  if( strcmp ( argv[1] , "plano" ) == 0 ){
+	  model.planoXZ_Yfixo(atof(argv[2]), 0, atof(argv[3]), atof ( argv[4]), atof (argv[5] ), 1 );
+    model.save(argv[6]);
   }
   if( strcmp ( argv[1] , "paralelipipedo" ) == 0  ){
-    model.createParallelepipe ( atof ( argv[2] ) , atof ( argv[3] ) , atof ( argv[4] )  );
-    model.save(argv[5]);
+	  model.createParallelepipe(atof(argv[2]), atof(argv[3]), atof(argv[4]), atof(argv[5]), atof(argv[6]), atof(argv[7]) );
+    model.save(argv[8]);
   }
   if( strcmp ( argv[1] , "cone" ) == 0  ){
     model.createCone ( atof ( argv[2] ) , atof ( argv[3] ) , atof ( argv[4] ) , atof ( argv[5] )  );
@@ -27,4 +27,3 @@ int main( int argc, char* argv[] ){
   }
   return 0;
 }
-
