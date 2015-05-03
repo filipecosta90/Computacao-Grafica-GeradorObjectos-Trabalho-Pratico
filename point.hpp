@@ -20,6 +20,9 @@ class Point {
       z = aZ;
     }
 
+    Point (){
+    }
+
 };
 
 #endif /* _POINT_H_INCLUDED_ */

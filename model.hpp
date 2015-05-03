@@ -8,8 +8,9 @@
 #define _MODEL_H_INCLUDED_
 
 #define _USE_MATH_DEFINES
-
 #include "point.hpp"
+
+#include "bezier.hpp"
 
 #include "tinyxml.cpp"
 #include "tinyxml.h"
@@ -17,6 +18,12 @@
 #include "tinyxmlparser.cpp"
 #include "tinystr.cpp"
 #include "tinystr.h"
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <stdlib.h>     /* atoi */
 
 #include <vector>
 #include <string>
@@ -27,17 +34,130 @@ class Model {
     std::string modelName;
     std::vector<Point> pointsVector;
     std::vector<Point>::iterator it;
+    std::string patchFileName;
+    int numberPatches;
+    std::vector< std::vector<int> > patchesVector;
+    int numberControlPoints;
+    std::vector<Point>bezierControlPoints;
 
     Model ( ) {
+      numberPatches = 0;
     }
 
     Model ( std::string mName ){
       modelName = mName;
-
+      numberPatches = 0;
     }
 
-    void load()
-    {
+    void addPoint( Point p ){
+      it = pointsVector.end();
+      pointsVector.insert ( it , p );
+    }
+
+    void loadPatchFile( std::string filename ){
+      std::ifstream infile( filename );
+
+      if( infile ){
+        std::string s;
+        getline( infile, s );
+        numberPatches= atoi( s.c_str() );
+      }
+
+      int positionPatch = 1;
+      while (infile && positionPatch <= numberPatches ){
+        std::vector<int> patch;
+        std::string s;
+        if (!getline( infile, s )) break;
+        std::istringstream ss( s );
+
+        while (ss)
+        {
+          int record;
+          std::string s;
+          if (!getline( ss, s, ',' )) break;
+          record = atoi ( s.c_str());
+          patch.push_back( record );
+        }
+        patchesVector.push_back( patch );
+        positionPatch++;
+      }
+
+      if( infile ){
+        std::string s;
+        getline( infile, s );
+        numberControlPoints = atoi( s.c_str() );
+      }
+
+      int positionControlPoint = 1;
+      while (infile && positionControlPoint <= numberControlPoints ){
+        float pX, pY, pZ;
+        std::string s;
+        if (!getline( infile, s )) break;
+
+        std::istringstream ss( s );
+
+        getline( ss, s, ',' );
+        pX = atof ( s.c_str());
+        getline( ss, s, ',' );
+        pY = atof ( s.c_str());
+        getline( ss, s, ',' );
+        pZ = atof ( s.c_str());
+        Point newPoint ( pX , pY , pZ );
+        bezierControlPoints.push_back( newPoint );
+        positionPatch++;
+      }
+    }
+
+    void generatePointsFromPatch ( int detailLevel ){
+      std::vector< std::vector<int> >::iterator patchesVectorIterator;
+      patchesVectorIterator=patchesVector.begin();
+
+      for ( ; patchesVectorIterator != patchesVector.end(); ++patchesVectorIterator ){
+        std::vector<std::vector <Point>> BezierLines;
+
+        //first get the correct points for bezier lines
+        int patchSize = patchesVectorIterator->size();
+        for ( int lineNumber = 1; lineNumber <=4 ; lineNumber++ ){
+          std::vector <Point> BezierLine;
+          for ( int patchPosition = 4*(lineNumber-1) ; patchPosition < 4*lineNumber ; patchPosition++ ){
+            int positionInControlPoints = (*patchesVectorIterator)[patchPosition];
+            Point newPoint ( bezierControlPoints[ positionInControlPoints ]);
+            BezierLine.push_back( newPoint );
+          }
+          BezierLines.push_back( BezierLine );
+        }
+
+        //then get the points of the line based on the detail
+        Point pointA, pointB, pointC, pointD;
+
+        for (int ru = 0; ru <= detailLevel-1; ru++) {
+          float u = 1.0 * ru / (detailLevel-1);
+          for (int rv = 0; rv <= detailLevel-1; rv++) {
+            float v = 1.0 * rv / (detailLevel-1);
+            pointA = computePosition( BezierLines , u, v);
+            rv++;
+            v = 1.0 * rv / (detailLevel-1);
+            pointB = computePosition( BezierLines , u, v);
+            ru++;
+            u = 1.0 * ru / (detailLevel-1);
+            pointC = computePosition( BezierLines , u, v);
+            rv--;
+            v = 1.0 * rv / (detailLevel-1);
+            pointD = computePosition( BezierLines , u, v);
+            ru--;
+            u = 1.0 * ru / (detailLevel-1);
+            addPoint( Point (pointA) );
+            addPoint( Point (pointB) );
+            addPoint( Point (pointC) );
+            addPoint( Point (pointC) );
+            addPoint( Point (pointD) );
+            addPoint( Point (pointA) );
+          }
+        }
+      }
+    }
+
+    void load(){
       TiXmlDocument doc( modelName.c_str() );
       if (!doc.LoadFile()) return;
       TiXmlHandle hDoc(&doc);
@@ -64,10 +184,7 @@ class Model {
       }
     }
 
-    void addPoint( Point p ){
-      it = pointsVector.end();
-      pointsVector.insert ( it , p );
-    }
+
 
     void save( const char * pFilename )
     {
@@ -92,197 +209,197 @@ class Model {
       doc.SaveFile(pFilename);
     }
 
-   
-	void planoXZ_Yfixo(float comprimento, float altura, float largura, float fatiasComprimento, float fatiasLargura, int factor){
-		// pôr instruções de desenho aqui
 
-		float distanciaFatiasLargura = largura / fatiasLargura;
-		float distanciaFatiasComprimento = comprimento / fatiasComprimento;
+    void planoXZ_Yfixo(float comprimento, float altura, float largura, float fatiasComprimento, float fatiasLargura, int factor){
+      // pôr instruções de desenho aqui
 
-		for (float posicaoLargura = -(fatiasLargura / 2); posicaoLargura < fatiasLargura / 2; posicaoLargura++){
-			for (float posicaoComprimento = -(fatiasComprimento / 2); posicaoComprimento < fatiasComprimento / 2; posicaoComprimento++){
-				//ponto A
-				addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
-				if (factor == 1){
-					//ponto B
-					posicaoLargura++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
-					//ponto C
-					posicaoComprimento++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
-				}
-				else if (factor == -1){
-					//ponto C
-					posicaoComprimento++;
-					posicaoLargura++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
-					//ponto B
-					posicaoComprimento--;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
-					posicaoComprimento++;
-				}
-				
-				posicaoLargura--;
-				posicaoComprimento--;
-				
-				//ponto A
-				addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
-				if (factor == 1){
-					//ponto C
-					posicaoLargura++;
-					posicaoComprimento++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
-					//ponto D
-					posicaoLargura--;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
-					posicaoComprimento--;
-				}
-				else if (factor == -1){
-					//ponto D
-					posicaoComprimento++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
-					//ponto C
-					posicaoLargura++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
-					posicaoLargura--;
-					posicaoComprimento--;
-				}
-			}
-		}
-	}
+      float distanciaFatiasLargura = largura / fatiasLargura;
+      float distanciaFatiasComprimento = comprimento / fatiasComprimento;
 
-	void planoXY_Zfixo(float comprimento, float altura, float largura, float fatiasComprimento, float fatiasAltura, int factor){
+      for (float posicaoLargura = -(fatiasLargura / 2); posicaoLargura < fatiasLargura / 2; posicaoLargura++){
+        for (float posicaoComprimento = -(fatiasComprimento / 2); posicaoComprimento < fatiasComprimento / 2; posicaoComprimento++){
+          //ponto A
+          addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+          if (factor == 1){
+            //ponto B
+            posicaoLargura++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            //ponto C
+            posicaoComprimento++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+          }
+          else if (factor == -1){
+            //ponto C
+            posicaoComprimento++;
+            posicaoLargura++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            //ponto B
+            posicaoComprimento--;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            posicaoComprimento++;
+          }
 
-		float distanciaFatiasAltura = altura / fatiasAltura;
-		float distanciaFatiasComprimento = comprimento / fatiasComprimento;
+          posicaoLargura--;
+          posicaoComprimento--;
 
-		for (float posicaoAltura = -(fatiasAltura / 2); posicaoAltura < fatiasAltura / 2; posicaoAltura++){
-			for (float posicaoComprimento = -(fatiasComprimento / 2); posicaoComprimento < fatiasComprimento / 2; posicaoComprimento++){
-				//ponto A
-				addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
-				if (factor == 1){
-					//ponto B
-					posicaoComprimento++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
-					//ponto C
-					posicaoComprimento--;
-					posicaoAltura++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
-					posicaoAltura--;
-				}
-				else if (factor == -1){
-					//ponto C
+          //ponto A
+          addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+          if (factor == 1){
+            //ponto C
+            posicaoLargura++;
+            posicaoComprimento++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            //ponto D
+            posicaoLargura--;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            posicaoComprimento--;
+          }
+          else if (factor == -1){
+            //ponto D
+            posicaoComprimento++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            //ponto C
+            posicaoLargura++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            posicaoLargura--;
+            posicaoComprimento--;
+          }
+        }
+      }
+    }
 
-					posicaoAltura++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
-					//ponto B
-					posicaoAltura--;
-					posicaoComprimento++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
-					posicaoComprimento--;
-				}
-				//ponto C
-				posicaoAltura++;
-				addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
-				if (factor == 1){
-					//ponto B
-					posicaoAltura--;
-					posicaoComprimento++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
-					//ponto D
-					posicaoAltura++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
-					posicaoComprimento--;
-					posicaoAltura--;
-				}
-				else if (factor == -1){
-					//ponto D
-					posicaoComprimento++;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
-					//ponto B
-					posicaoAltura--;
-					addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
-					posicaoComprimento--;
-				}
-			}
-		}
-	}
+    void planoXY_Zfixo(float comprimento, float altura, float largura, float fatiasComprimento, float fatiasAltura, int factor){
 
-	void planoYZ_Xfixo(float comprimento, float altura, float largura, float fatiasAltura, float fatiasLargura, int factor){
-		
-		float distanciaFatiasAltura = altura / fatiasAltura;
-		float distanciaFatiasLargura = largura / fatiasLargura;
+      float distanciaFatiasAltura = altura / fatiasAltura;
+      float distanciaFatiasComprimento = comprimento / fatiasComprimento;
 
-		for (float posicaoAltura = -(fatiasAltura / 2); posicaoAltura < fatiasAltura / 2; posicaoAltura++){
-			for (float posicaoLargura = -(fatiasLargura / 2); posicaoLargura < fatiasLargura / 2; posicaoLargura++){
-				//ponto A
-				addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
-				if (factor == 1){
-					//ponto C
-					posicaoAltura++;
-					addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
-					//ponto B
-					posicaoAltura--;
-					posicaoLargura++;
-					addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
-					posicaoLargura--;
-				}
-				else if (factor == -1){
-					//ponto B
-					posicaoLargura++;
-					addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
-					//ponto C
-					posicaoLargura--;
-					posicaoAltura++;
-					addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
-					posicaoAltura--;
-				}
-				//ponto C
-				posicaoAltura++;
-				addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
-				if (factor == 1){
-					//ponto D
-					posicaoLargura++;
-					addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
-					//ponto B
-					posicaoAltura--;
-					addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
-					posicaoLargura--;
-				}
-				else if (factor == -1){
-					//ponto B
-					posicaoAltura--;
-					posicaoLargura++;
-					addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
-					//ponto D
-					posicaoAltura++;
-					addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
-					posicaoLargura--;
-					posicaoAltura--;
-				}
-			}
-		}
-	}
+      for (float posicaoAltura = -(fatiasAltura / 2); posicaoAltura < fatiasAltura / 2; posicaoAltura++){
+        for (float posicaoComprimento = -(fatiasComprimento / 2); posicaoComprimento < fatiasComprimento / 2; posicaoComprimento++){
+          //ponto A
+          addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+          if (factor == 1){
+            //ponto B
+            posicaoComprimento++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            //ponto C
+            posicaoComprimento--;
+            posicaoAltura++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            posicaoAltura--;
+          }
+          else if (factor == -1){
+            //ponto C
+
+            posicaoAltura++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            //ponto B
+            posicaoAltura--;
+            posicaoComprimento++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            posicaoComprimento--;
+          }
+          //ponto C
+          posicaoAltura++;
+          addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+          if (factor == 1){
+            //ponto B
+            posicaoAltura--;
+            posicaoComprimento++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            //ponto D
+            posicaoAltura++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            posicaoComprimento--;
+            posicaoAltura--;
+          }
+          else if (factor == -1){
+            //ponto D
+            posicaoComprimento++;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            //ponto B
+            posicaoAltura--;
+            addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            posicaoComprimento--;
+          }
+        }
+      }
+    }
+
+    void planoYZ_Xfixo(float comprimento, float altura, float largura, float fatiasAltura, float fatiasLargura, int factor){
+
+      float distanciaFatiasAltura = altura / fatiasAltura;
+      float distanciaFatiasLargura = largura / fatiasLargura;
+
+      for (float posicaoAltura = -(fatiasAltura / 2); posicaoAltura < fatiasAltura / 2; posicaoAltura++){
+        for (float posicaoLargura = -(fatiasLargura / 2); posicaoLargura < fatiasLargura / 2; posicaoLargura++){
+          //ponto A
+          addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+          if (factor == 1){
+            //ponto C
+            posicaoAltura++;
+            addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            //ponto B
+            posicaoAltura--;
+            posicaoLargura++;
+            addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            posicaoLargura--;
+          }
+          else if (factor == -1){
+            //ponto B
+            posicaoLargura++;
+            addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            //ponto C
+            posicaoLargura--;
+            posicaoAltura++;
+            addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            posicaoAltura--;
+          }
+          //ponto C
+          posicaoAltura++;
+          addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+          if (factor == 1){
+            //ponto D
+            posicaoLargura++;
+            addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            //ponto B
+            posicaoAltura--;
+            addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            posicaoLargura--;
+          }
+          else if (factor == -1){
+            //ponto B
+            posicaoAltura--;
+            posicaoLargura++;
+            addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            //ponto D
+            posicaoAltura++;
+            addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            posicaoLargura--;
+            posicaoAltura--;
+          }
+        }
+      }
+    }
 
     void createParallelepipe ( float comprimento, float altura, float largura, float fatiasComprimento, float fatiasAltura, float fatiasLargura ){
 
-		//Topo
-		planoXZ_Yfixo(comprimento, altura / 2, largura, fatiasComprimento, fatiasLargura, 1);
+      //Topo
+      planoXZ_Yfixo(comprimento, altura / 2, largura, fatiasComprimento, fatiasLargura, 1);
 
-		//Base 
-		planoXZ_Yfixo(comprimento, -altura / 2, largura, fatiasComprimento, fatiasLargura, -1);
+      //Base 
+      planoXZ_Yfixo(comprimento, -altura / 2, largura, fatiasComprimento, fatiasLargura, -1);
 
-		//Lado 1
-		planoYZ_Xfixo(comprimento / 2, altura, largura, fatiasAltura, fatiasLargura, 1);
+      //Lado 1
+      planoYZ_Xfixo(comprimento / 2, altura, largura, fatiasAltura, fatiasLargura, 1);
 
-		//Lado 2
-		planoYZ_Xfixo(-comprimento / 2, altura, largura, fatiasAltura, fatiasLargura, -1);
+      //Lado 2
+      planoYZ_Xfixo(-comprimento / 2, altura, largura, fatiasAltura, fatiasLargura, -1);
 
-		//Frente
-		planoXY_Zfixo(comprimento, altura, largura / 2, fatiasComprimento, fatiasAltura, 1);
-		
-		//Tras
-		planoXY_Zfixo(comprimento, altura, -largura / 2, fatiasComprimento, fatiasAltura, -1);
+      //Frente
+      planoXY_Zfixo(comprimento, altura, largura / 2, fatiasComprimento, fatiasAltura, 1);
+
+      //Tras
+      planoXY_Zfixo(comprimento, altura, -largura / 2, fatiasComprimento, fatiasAltura, -1);
     }
 
     float getValorRad(float raio, float fatias, int i){
