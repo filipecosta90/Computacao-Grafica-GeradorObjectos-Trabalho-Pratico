@@ -33,6 +33,9 @@ class Model {
   public:
     std::string modelName;
     std::vector<Point> pointsVector;
+	std::vector<Point> normalVector;
+	std::vector<Point> textureVector;
+
     std::vector<Point>::iterator it;
     std::string patchFileName;
     int numberPatches;
@@ -40,19 +43,44 @@ class Model {
     int numberControlPoints;
     std::vector<Point>bezierControlPoints;
 
+	bool normalVectorDefined;
+	bool textureVectorDefined;
+
+
+
     Model ( ) {
       numberPatches = 0;
+	  normalVectorDefined = false;
+	  textureVectorDefined = false;
     }
 
     Model ( std::string mName ){
       modelName = mName;
       numberPatches = 0;
+	  normalVectorDefined = false;
+	  textureVectorDefined = false;
     }
 
     void addPoint( Point p ){
       it = pointsVector.end();
       pointsVector.insert ( it , p );
     }
+
+	void addNormalPoint(Point p){
+		if (!normalVectorDefined){
+			normalVectorDefined = true;
+		}
+		it = normalVector.end();
+		normalVector.insert(it, p);
+	}
+
+	void addTexturePoint(Point p){
+		if (!textureVectorDefined){
+			textureVectorDefined = true;
+		}
+		it = textureVector.end();
+		textureVector.insert(it, p);
+	}
 
     void loadPatchFile( std::string filename ){
       std::ifstream infile( filename );
@@ -189,23 +217,42 @@ class Model {
     void save( const char * pFilename )
     {
       TiXmlDocument doc;
-      TiXmlElement* pElem;
+      TiXmlElement* pElem, *nElem, *tElem;
       TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
       doc.LinkEndChild( decl );
 
       TiXmlElement * root = new TiXmlElement(modelName.c_str());  
+	  if (normalVectorDefined){
+		  root->SetAttribute("defNormal", true);
+	  }
+	  if (textureVectorDefined){
+		  root->SetAttribute("defTextura", true);
+	  }
+
       doc.LinkEndChild( root );
       // block: pontos
-      {
-        for ( it = pointsVector.begin(); it != pointsVector.end(); ++it)
+	  
+        for ( int pos = 0; pos < pointsVector.size() ; pos++)
         {
           pElem = new TiXmlElement ("ponto");
-          pElem->SetDoubleAttribute ("x", it->x);
-          pElem->SetDoubleAttribute ("y", it->y);
-          pElem->SetDoubleAttribute ("z", it->z);
+          pElem->SetDoubleAttribute ("x", pointsVector.at(pos).x);
+		  pElem->SetDoubleAttribute ("y", pointsVector.at(pos).y);
+		  pElem->SetDoubleAttribute ("z", pointsVector.at(pos).z);
           root->LinkEndChild( pElem );
+		  if (normalVectorDefined){
+			  nElem = new TiXmlElement("normal");
+			  nElem->SetDoubleAttribute("x", normalVector.at(pos).x);
+			  nElem->SetDoubleAttribute("y", normalVector.at(pos).y);
+			  nElem->SetDoubleAttribute("z", normalVector.at(pos).z);
+			  root->LinkEndChild(nElem);
+		  }
+		  if (textureVectorDefined){
+			  tElem = new TiXmlElement("textura");
+			  tElem->SetDoubleAttribute("x", textureVector.at(pos).x);
+			  tElem->SetDoubleAttribute("y", textureVector.at(pos).y);
+			  root->LinkEndChild(tElem);
+		  }
         }
-      }
       doc.SaveFile(pFilename);
     }
 
@@ -420,61 +467,144 @@ class Model {
           rad = getValorRad(raio, fatias, k);
           //PONTO D -- vamos guardar
           float radCeD = getValorRad(raio, fatias, k + 1);
+
+		  // vector U = point C - point A;
+		  float Ux, Uy, Uz;
+		  Ux = raioCamadaCima * sin(radCeD) - raio * sin(rad);
+		  Uy = alturaCamadaCima - altura;
+		  Uz = raioCamadaCima * cos(radCeD) - raio * cos(rad);
+
+		  // vectorV = point C - point B;
+		  float Vx, Vy, Vz;
+		  Vx = raioCamadaCima * sin(radCeD) - raioCamadaCima * sin(rad);
+		  Vy = alturaCamadaCima - alturaCamadaCima;
+		  Vz = raioCamadaCima * cos(radCeD) - raioCamadaCima * cos(rad);
+
+		  // normal vector
+		  float Nx, Ny, Nz;
+		  Nx = Uy * Vz - Uz *Vy;
+		  Ny = Uz * Vx - Ux * Vz;
+		  Nz = Ux * Vy - Uy *Vx;
+
+		  // calculate the length of the vector
+		  float len = (float)(sqrt((Nx * Nx) + (Ny * Ny) + (Nz * Nz)));
+
+		  // avoid division by 0
+		  if (len == 0.0f)
+			  len = 1.0f;
+
+		  // reduce to unit size
+		  Nx /= len;
+		  Ny /= len;
+		  Nz /= len;
+
+		  Point normalPoint = Point(Nx, Ny, Nz);
+
           if (factor == 1){
             //Ponto A
             addPoint( Point (raio * sin(rad), altura, raio * cos(rad)));
+			addNormalPoint( normalPoint );
             //Ponto C
             addPoint( Point (raioCamadaCima * sin(radCeD), alturaCamadaCima, raioCamadaCima * cos(radCeD)));
+			addNormalPoint( normalPoint );
             //Ponto B
             addPoint( Point (raioCamadaCima  * sin(rad), alturaCamadaCima, raioCamadaCima * cos(rad)));
+			addNormalPoint( normalPoint );
           }
           else if (factor == -1){
             //Ponto A
             addPoint( Point (raio * sin(rad), altura, raio * cos(rad)));
-            //Ponto B
+			addNormalPoint(normalPoint);
+			//Ponto B
             addPoint( Point (raioCamadaCima  * sin(rad), alturaCamadaCima, raioCamadaCima * cos(rad)));
-            //Ponto C
+			addNormalPoint(normalPoint);
+			//Ponto C
             addPoint( Point (raioCamadaCima * sin(radCeD), alturaCamadaCima, raioCamadaCima * cos(radCeD)));
-          }
+			addNormalPoint(normalPoint);
+		  }
           if (factor == 1){
             //Ponto A
             addPoint( Point (raio * sin(rad), altura, raio * cos(rad)));
-            //Ponto D
+			addNormalPoint(normalPoint);
+			//Ponto D
             addPoint( Point (raio * sin(radCeD), altura, raio * cos(radCeD)));
-            //Ponto C
+			addNormalPoint(normalPoint);
+			//Ponto C
             addPoint( Point (raioCamadaCima * sin(radCeD), alturaCamadaCima, raioCamadaCima * cos(radCeD)));
+			addNormalPoint(normalPoint);
           }
           else if (factor == -1){
             //Ponto A
             addPoint( Point (raio * sin(rad), altura, raio * cos(rad)));
+			addNormalPoint(normalPoint);
             //Ponto C
             addPoint( Point (raioCamadaCima * sin(radCeD), alturaCamadaCima, raioCamadaCima * cos(radCeD)));
+			addNormalPoint(normalPoint);
             //Ponto D
             addPoint( Point (raio * sin(radCeD), altura, raio * cos(radCeD)));
+			addNormalPoint(normalPoint);
           }
         }
         //camada final
         if (camadaNumero == camadas - 1){
           rad = getValorRad(raio, fatias, k);
+		  float radCeD = getValorRad(raio, fatias, k + 1);
+
           //camada superior da esfera
+		  // vector U = point C - point A;
+		  float Ux, Uy, Uz;
+		  Ux = 0.0f - raio * sin(rad);
+		  Uy = alturaCamadaCima - altura;
+		  Uz = 0.0f - raio * cos(rad);
+
+		  // vectorV = point C - point D;
+		  float Vx, Vy, Vz;
+		  Vx = 0.0f - raio * sin(radCeD);
+		  Vy = alturaCamadaCima - altura;
+		  Vz = 0.0f - raio * cos(radCeD);
+
+		  // normal vector
+		  float Nx, Ny, Nz;
+		  Nx = Uy * Vz - Uz *Vy;
+		  Ny = Uz * Vx - Ux * Vz;
+		  Nz = Ux * Vy - Uy *Vx;
+
+		  // calculate the length of the vector
+		  float len = (float)(sqrt((Nx * Nx) + (Ny * Ny) + (Nz * Nz)));
+
+		  // avoid division by 0
+		  if (len == 0.0f)
+			  len = 1.0f;
+
+		  // reduce to unit size
+		  Nx /= len;
+		  Ny /= len;
+		  Nz /= len;
+
+		  Point normalPoint = Point(Nx, Ny, Nz);
+
           if (factor == 1){
             //Ponto A
             addPoint( Point (raio * sin(rad), altura, raio * cos(rad)));
+			addNormalPoint(normalPoint);
             //Ponto D
-            float radCeD = getValorRad(raio, fatias, k + 1);
             addPoint( Point (raio *  sin(radCeD), altura, raio * cos(radCeD)));
+			addNormalPoint(normalPoint);
             //Ponto C
             addPoint( Point (0.0, alturaCamadaCima, 0.0));
+			addNormalPoint(normalPoint);
           }
           //camada inferior da esfera
           else if (factor == -1){
             //Ponto A
             addPoint( Point (raio * sin(rad), altura, raio * cos(rad)));
+			addNormalPoint(normalPoint);
             //Ponto C
             addPoint( Point (0.0, alturaCamadaCima, 0.0));
+			addNormalPoint(normalPoint);
             //Ponto D
-            float radCeD = getValorRad(raio, fatias, k + 1);
             addPoint( Point (raio *  sin(radCeD), altura, raio * cos(radCeD)));
+			addNormalPoint(normalPoint);
           }
         }
       }
