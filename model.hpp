@@ -46,16 +46,16 @@ class Model {
     bool normalVectorDefined;
     bool textureVectorDefined;
 
-	int textureWidth;
-	int textureHeight;
+    int textureWidth;
+    int textureHeight;
 
 
     Model ( ) {
       numberPatches = 0;
       normalVectorDefined = false;
       textureVectorDefined = false;
-	  textureHeight = 512;
-	  textureWidth = 1024;
+      textureHeight = 512;
+      textureWidth = 1024;
     }
 
     Model ( std::string mName ){
@@ -63,8 +63,8 @@ class Model {
       numberPatches = 0;
       normalVectorDefined = false;
       textureVectorDefined = false;
-	  textureHeight = 512;
-	  textureWidth = 1024;
+      textureHeight = 512;
+      textureWidth = 1024;
     }
 
     void addPoint( Point p ){
@@ -142,20 +142,20 @@ class Model {
       }
     }
 
-	bool testSizeNormalVector(){
-		if (normalVector.size() == pointsVector.size()){
-			return true;
-		}
-		else
-			return false;
-	}
-	bool testSizeTextureVector(){
-		if (textureVector.size() == pointsVector.size()){
-			return true;
-		}
-		else
-			return false;
-	}
+    bool testSizeNormalVector(){
+      if (normalVector.size() == pointsVector.size()){
+        return true;
+      }
+      else
+        return false;
+    }
+    bool testSizeTextureVector(){
+      if (textureVector.size() == pointsVector.size()){
+        return true;
+      }
+      else
+        return false;
+    }
 
     void generatePointsFromPatch ( int detailLevel ){
       std::vector< std::vector<int> >::iterator patchesVectorIterator;
@@ -519,96 +519,96 @@ class Model {
 
           Point normalPoint = Point(Nx, Ny, Nz);
 
-		  float aX, aY, bX, bY, cX, cY, dX, dY;
+          float aX, aY, bX, bY, cX, cY, dX, dY;
 
-		  float alturaRaio = altura / raioOriginal;
-		  float alturaRaioCima = alturaCamadaCima / raioOriginal;
+          float alturaRaio = altura / raioOriginal;
+          float alturaRaioCima = alturaCamadaCima / raioOriginal;
 
-		  float yAD = (float) asinf(alturaRaio);
-		  yAD = yAD / M_PI_2;
-		  yAD = 0.5f + 0.5f * yAD;
-		  aY = dY = yAD;
+          float yAD = (float) asinf(alturaRaio);
+          yAD = yAD / M_PI_2;
+          yAD = 0.5f + 0.5f * yAD;
+          aY = dY = yAD;
 
-		  float yBC = (float)asinf(alturaRaioCima);
-		  yBC = yBC / M_PI_2;
-		  yBC = 0.5f + 0.5f * yBC;
-		  bY = cY = yBC;
+          float yBC = (float)asinf(alturaRaioCima);
+          yBC = yBC / M_PI_2;
+          yBC = 0.5f + 0.5f * yBC;
+          bY = cY = yBC;
 
 
-		  float xAB = atanf(rad);
-		  xAB = xAB / ( M_PI_2 );
-		  aX = bX = xAB;
+          float xAB = atanf(rad);
+          xAB = xAB / ( M_PI_2 );
+          aX = bX = xAB;
 
-		  float xCD = atanf(radCeD);
-		  xCD = xCD / ( M_PI_2 );
-		  cX = dX = xCD;
+          float xCD = atanf(radCeD);
+          xCD = xCD / ( M_PI_2 );
+          cX = dX = xCD;
 
-		  std::cout << xAB << "\t" << xCD << "\n";
-		  //std::cout << xAB << " " << xAB << " " << yAD << " " << yBC << " " << radCeD << "\n";
+          std::cout << xAB << "\t" << xCD << "\n";
+          //std::cout << xAB << " " << xAB << " " << yAD << " " << yBC << " " << radCeD << "\n";
 
           if (factor == 1){
             //Ponto A
             addPoint( Point (raio * sinf(rad), altura, raio * cosf(rad)));
             addNormalPoint( normalPoint );
-			addTexturePoint(Point(aX, aY));
+            addTexturePoint(Point(aX, aY));
             //Ponto C
             addPoint( Point (raioCamadaCima * sinf(radCeD), alturaCamadaCima, raioCamadaCima * cosf(radCeD)));
             addNormalPoint( normalPoint );
-			addTexturePoint(Point(cX, cY));
+            addTexturePoint(Point(cX, cY));
             //Ponto B
             addPoint( Point (raioCamadaCima  * sinf(rad), alturaCamadaCima, raioCamadaCima * cosf(rad)));
             addNormalPoint( normalPoint );
-			addTexturePoint(Point(bX, bY));
+            addTexturePoint(Point(bX, bY));
           }
           else if (factor == -1){
             //Ponto A
             addPoint( Point (raio * sinf(rad), altura, raio * cosf(rad)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(aX, aY));
+            addTexturePoint(Point(aX, aY));
 
             //Ponto B
             addPoint( Point (raioCamadaCima  * sinf(rad), alturaCamadaCima, raioCamadaCima * cosf(rad)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(bX, bY));
+            addTexturePoint(Point(bX, bY));
 
             //Ponto C
             addPoint( Point (raioCamadaCima * sinf(radCeD), alturaCamadaCima, raioCamadaCima * cosf(radCeD)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(cX, cY));
+            addTexturePoint(Point(cX, cY));
 
           }
           if (factor == 1){
             //Ponto A
             addPoint( Point (raio * sinf(rad), altura, raio * cosf(rad)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(aX, aY));
+            addTexturePoint(Point(aX, aY));
 
             //Ponto D
             addPoint( Point (raio * sinf(radCeD), altura, raio * cosf(radCeD)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(dX, dY));
+            addTexturePoint(Point(dX, dY));
 
             //Ponto C
             addPoint( Point (raioCamadaCima * sinf(radCeD), alturaCamadaCima, raioCamadaCima * cosf(radCeD)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(cX, cY));
+            addTexturePoint(Point(cX, cY));
 
           }
           else if (factor == -1){
             //Ponto A
             addPoint( Point (raio * sinf(rad), altura, raio * cosf(rad)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(aX, aY));
+            addTexturePoint(Point(aX, aY));
 
             //Ponto C
             addPoint( Point (raioCamadaCima * sinf(radCeD), alturaCamadaCima, raioCamadaCima * cosf(radCeD)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(cX, cY));
+            addTexturePoint(Point(cX, cY));
 
             //Ponto D
             addPoint( Point (raio * sinf(radCeD), altura, raio * cosf(radCeD)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(dX, dY));
+            addTexturePoint(Point(dX, dY));
 
           }
         }
@@ -617,28 +617,28 @@ class Model {
           rad = getValorRad(raio, fatias, k);
           float radCeD = getValorRad(raio, fatias, k + 1);
 
-		  float aX, aY, bX, bY, cX, cY, dX, dY;
+          float aX, aY, bX, bY, cX, cY, dX, dY;
 
-		  float alturaRaio = altura / raioOriginal;
-		  float alturaRaioCima = alturaCamadaCima / raioOriginal;
+          float alturaRaio = altura / raioOriginal;
+          float alturaRaioCima = alturaCamadaCima / raioOriginal;
 
-		  float yAD = (float)asinf(alturaRaio);
-		  yAD = yAD / M_PI_2;
-		  yAD = 0.5f + 0.5f * yAD;
-		  aY = dY = yAD;
+          float yAD = (float)asinf(alturaRaio);
+          yAD = yAD / M_PI_2;
+          yAD = 0.5f + 0.5f * yAD;
+          aY = dY = yAD;
 
-		  float yBC = (float)asinf(alturaRaioCima);
-		  yBC = yBC / M_PI_2;
-		  yBC = 0.5f + 0.5f * yBC;
-		  bY = cY = yBC;
+          float yBC = (float)asinf(alturaRaioCima);
+          yBC = yBC / M_PI_2;
+          yBC = 0.5f + 0.5f * yBC;
+          bY = cY = yBC;
 
-		  float xAB = atanf(rad);
-		  xAB = xAB / M_PI_2;
-		  aX = bX = xAB;
+          float xAB = atanf(rad);
+          xAB = xAB / M_PI_2;
+          aX = bX = xAB;
 
-		  float xCD = atanf(radCeD);
-		  xCD = xCD / M_PI_2;
-		  cX = dX = xCD;
+          float xCD = atanf(radCeD);
+          xCD = xCD / M_PI_2;
+          cX = dX = xCD;
 
           //camada superior da esfera
           // vector U = point C - point A;
@@ -677,17 +677,17 @@ class Model {
             //Ponto A
             addPoint( Point (raio * sinf(rad), altura, raio * cosf(rad)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(aX, aY));
+            addTexturePoint(Point(aX, aY));
 
             //Ponto D
             addPoint( Point (raio *  sinf(radCeD), altura, raio * cosf(radCeD)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(dX, dY));
+            addTexturePoint(Point(dX, dY));
 
             //Ponto C
             addPoint( Point (0.0, alturaCamadaCima, 0.0));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(cX, cY));
+            addTexturePoint(Point(cX, cY));
 
           }
           //camada inferior da esfera
@@ -695,17 +695,17 @@ class Model {
             //Ponto A
             addPoint( Point (raio * sinf(rad), altura, raio * cosf(rad)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(aX, aY));
+            addTexturePoint(Point(aX, aY));
 
             //Ponto C
             addPoint( Point (0.0, alturaCamadaCima, 0.0));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(cX, cY));
+            addTexturePoint(Point(cX, cY));
 
             //Ponto D
             addPoint( Point (raio *  sinf(radCeD), altura, raio * cosf(radCeD)));
             addNormalPoint(normalPoint);
-			addTexturePoint(Point(dX, dY));
+            addTexturePoint(Point(dX, dY));
 
           }
         }
