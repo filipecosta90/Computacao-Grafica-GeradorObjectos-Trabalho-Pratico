@@ -46,12 +46,16 @@ class Model {
     bool normalVectorDefined;
     bool textureVectorDefined;
 
+	int textureWidth;
+	int textureHeight;
 
 
     Model ( ) {
       numberPatches = 0;
       normalVectorDefined = false;
       textureVectorDefined = false;
+	  textureHeight = 512;
+	  textureWidth = 1024;
     }
 
     Model ( std::string mName ){
@@ -59,6 +63,8 @@ class Model {
       numberPatches = 0;
       normalVectorDefined = false;
       textureVectorDefined = false;
+	  textureHeight = 512;
+	  textureWidth = 1024;
     }
 
     void addPoint( Point p ){
@@ -135,6 +141,21 @@ class Model {
         positionPatch++;
       }
     }
+
+	bool testSizeNormalVector(){
+		if (normalVector.size() == pointsVector.size()){
+			return true;
+		}
+		else
+			return false;
+	}
+	bool testSizeTextureVector(){
+		if (textureVector.size() == pointsVector.size()){
+			return true;
+		}
+		else
+			return false;
+	}
 
     void generatePointsFromPatch ( int detailLevel ){
       std::vector< std::vector<int> >::iterator patchesVectorIterator;
@@ -450,15 +471,13 @@ class Model {
     }
 
     float getValorRad(float raio, float fatias, int i){
-      float alpha = 360 / fatias;
+      float alpha = 360 / (fatias);
       float rad = 0.0;
-      rad = i * alpha * M_PI / 180.0;
+      rad = ( i * alpha * M_PI ) / 180.0;
       return rad;
     }
 
-    void desenhaTriangulosEntreCamadas(float raio, float raioCamadaCima, float altura, float alturaCamadaCima, float fatias, float camadas, int camadaNumero, int factor){
-      float alturaPorCamadas = altura / camadas;
-      float ReducaoRaioPorAltura = raio / camadas;
+    void desenhaTriangulosEntreCamadas(float raioOriginal , float raio, float raioCamadaCima, float altura, float alturaCamadaCima, float fatias, float camadas, int camadaNumero, int factor){
       float rad = 0.0;
 
       for (int k = 0; k < fatias; k++){
@@ -470,15 +489,15 @@ class Model {
 
           // vector U = point C - point A;
           float Ux, Uy, Uz;
-          Ux = raioCamadaCima * sin(radCeD) - raio * sin(rad);
+          Ux = raioCamadaCima * sinf(radCeD) - raio * sinf(rad);
           Uy = alturaCamadaCima - altura;
-          Uz = raioCamadaCima * cos(radCeD) - raio * cos(rad);
+          Uz = raioCamadaCima * cosf(radCeD) - raio * cosf(rad);
 
           // vectorV = point C - point B;
           float Vx, Vy, Vz;
-          Vx = raioCamadaCima * sin(radCeD) - raioCamadaCima * sin(rad);
+          Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
           Vy = alturaCamadaCima - alturaCamadaCima;
-          Vz = raioCamadaCima * cos(radCeD) - raioCamadaCima * cos(rad);
+          Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
 
           // normal vector
           float Nx, Ny, Nz;
@@ -500,49 +519,97 @@ class Model {
 
           Point normalPoint = Point(Nx, Ny, Nz);
 
+		  float aX, aY, bX, bY, cX, cY, dX, dY;
+
+		  float alturaRaio = altura / raioOriginal;
+		  float alturaRaioCima = alturaCamadaCima / raioOriginal;
+
+		  float yAD = (float) asinf(alturaRaio);
+		  yAD = yAD / M_PI_2;
+		  yAD = 0.5f + 0.5f * yAD;
+		  aY = dY = yAD;
+
+		  float yBC = (float)asinf(alturaRaioCima);
+		  yBC = yBC / M_PI_2;
+		  yBC = 0.5f + 0.5f * yBC;
+		  bY = cY = yBC;
+
+
+		  float xAB = atanf(rad);
+		  xAB = xAB / ( M_PI_2 );
+		  aX = bX = xAB;
+
+		  float xCD = atanf(radCeD);
+		  xCD = xCD / ( M_PI_2 );
+		  cX = dX = xCD;
+
+		  std::cout << xAB << "\t" << xCD << "\n";
+		  //std::cout << xAB << " " << xAB << " " << yAD << " " << yBC << " " << radCeD << "\n";
+
           if (factor == 1){
             //Ponto A
-            addPoint( Point (raio * sin(rad), altura, raio * cos(rad)));
+            addPoint( Point (raio * sinf(rad), altura, raio * cosf(rad)));
             addNormalPoint( normalPoint );
+			addTexturePoint(Point(aX, aY));
             //Ponto C
-            addPoint( Point (raioCamadaCima * sin(radCeD), alturaCamadaCima, raioCamadaCima * cos(radCeD)));
+            addPoint( Point (raioCamadaCima * sinf(radCeD), alturaCamadaCima, raioCamadaCima * cosf(radCeD)));
             addNormalPoint( normalPoint );
+			addTexturePoint(Point(cX, cY));
             //Ponto B
-            addPoint( Point (raioCamadaCima  * sin(rad), alturaCamadaCima, raioCamadaCima * cos(rad)));
+            addPoint( Point (raioCamadaCima  * sinf(rad), alturaCamadaCima, raioCamadaCima * cosf(rad)));
             addNormalPoint( normalPoint );
+			addTexturePoint(Point(bX, bY));
           }
           else if (factor == -1){
             //Ponto A
-            addPoint( Point (raio * sin(rad), altura, raio * cos(rad)));
+            addPoint( Point (raio * sinf(rad), altura, raio * cosf(rad)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(aX, aY));
+
             //Ponto B
-            addPoint( Point (raioCamadaCima  * sin(rad), alturaCamadaCima, raioCamadaCima * cos(rad)));
+            addPoint( Point (raioCamadaCima  * sinf(rad), alturaCamadaCima, raioCamadaCima * cosf(rad)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(bX, bY));
+
             //Ponto C
-            addPoint( Point (raioCamadaCima * sin(radCeD), alturaCamadaCima, raioCamadaCima * cos(radCeD)));
+            addPoint( Point (raioCamadaCima * sinf(radCeD), alturaCamadaCima, raioCamadaCima * cosf(radCeD)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(cX, cY));
+
           }
           if (factor == 1){
             //Ponto A
-            addPoint( Point (raio * sin(rad), altura, raio * cos(rad)));
+            addPoint( Point (raio * sinf(rad), altura, raio * cosf(rad)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(aX, aY));
+
             //Ponto D
-            addPoint( Point (raio * sin(radCeD), altura, raio * cos(radCeD)));
+            addPoint( Point (raio * sinf(radCeD), altura, raio * cosf(radCeD)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(dX, dY));
+
             //Ponto C
-            addPoint( Point (raioCamadaCima * sin(radCeD), alturaCamadaCima, raioCamadaCima * cos(radCeD)));
+            addPoint( Point (raioCamadaCima * sinf(radCeD), alturaCamadaCima, raioCamadaCima * cosf(radCeD)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(cX, cY));
+
           }
           else if (factor == -1){
             //Ponto A
-            addPoint( Point (raio * sin(rad), altura, raio * cos(rad)));
+            addPoint( Point (raio * sinf(rad), altura, raio * cosf(rad)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(aX, aY));
+
             //Ponto C
-            addPoint( Point (raioCamadaCima * sin(radCeD), alturaCamadaCima, raioCamadaCima * cos(radCeD)));
+            addPoint( Point (raioCamadaCima * sinf(radCeD), alturaCamadaCima, raioCamadaCima * cosf(radCeD)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(cX, cY));
+
             //Ponto D
-            addPoint( Point (raio * sin(radCeD), altura, raio * cos(radCeD)));
+            addPoint( Point (raio * sinf(radCeD), altura, raio * cosf(radCeD)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(dX, dY));
+
           }
         }
         //camada final
@@ -550,18 +617,41 @@ class Model {
           rad = getValorRad(raio, fatias, k);
           float radCeD = getValorRad(raio, fatias, k + 1);
 
+		  float aX, aY, bX, bY, cX, cY, dX, dY;
+
+		  float alturaRaio = altura / raioOriginal;
+		  float alturaRaioCima = alturaCamadaCima / raioOriginal;
+
+		  float yAD = (float)asinf(alturaRaio);
+		  yAD = yAD / M_PI_2;
+		  yAD = 0.5f + 0.5f * yAD;
+		  aY = dY = yAD;
+
+		  float yBC = (float)asinf(alturaRaioCima);
+		  yBC = yBC / M_PI_2;
+		  yBC = 0.5f + 0.5f * yBC;
+		  bY = cY = yBC;
+
+		  float xAB = atanf(rad);
+		  xAB = xAB / M_PI_2;
+		  aX = bX = xAB;
+
+		  float xCD = atanf(radCeD);
+		  xCD = xCD / M_PI_2;
+		  cX = dX = xCD;
+
           //camada superior da esfera
           // vector U = point C - point A;
           float Ux, Uy, Uz;
-          Ux = 0.0f - raio * sin(rad);
+          Ux = 0.0f - raio * sinf(rad);
           Uy = alturaCamadaCima - altura;
-          Uz = 0.0f - raio * cos(rad);
+          Uz = 0.0f - raio * cosf(rad);
 
           // vectorV = point C - point D;
           float Vx, Vy, Vz;
-          Vx = 0.0f - raio * sin(radCeD);
+          Vx = 0.0f - raio * sinf(radCeD);
           Vy = alturaCamadaCima - altura;
-          Vz = 0.0f - raio * cos(radCeD);
+          Vz = 0.0f - raio * cosf(radCeD);
 
           // normal vector
           float Nx, Ny, Nz;
@@ -585,26 +675,38 @@ class Model {
 
           if (factor == 1){
             //Ponto A
-            addPoint( Point (raio * sin(rad), altura, raio * cos(rad)));
+            addPoint( Point (raio * sinf(rad), altura, raio * cosf(rad)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(aX, aY));
+
             //Ponto D
-            addPoint( Point (raio *  sin(radCeD), altura, raio * cos(radCeD)));
+            addPoint( Point (raio *  sinf(radCeD), altura, raio * cosf(radCeD)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(dX, dY));
+
             //Ponto C
             addPoint( Point (0.0, alturaCamadaCima, 0.0));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(cX, cY));
+
           }
           //camada inferior da esfera
           else if (factor == -1){
             //Ponto A
-            addPoint( Point (raio * sin(rad), altura, raio * cos(rad)));
+            addPoint( Point (raio * sinf(rad), altura, raio * cosf(rad)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(aX, aY));
+
             //Ponto C
             addPoint( Point (0.0, alturaCamadaCima, 0.0));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(cX, cY));
+
             //Ponto D
-            addPoint( Point (raio *  sin(radCeD), altura, raio * cos(radCeD)));
+            addPoint( Point (raio *  sinf(radCeD), altura, raio * cosf(radCeD)));
             addNormalPoint(normalPoint);
+			addTexturePoint(Point(dX, dY));
+
           }
         }
       }
@@ -620,11 +722,11 @@ class Model {
         //Ponto A
         addPoint( Point (0.0f, altura, 0.0f));
         //Ponto B
-        addPoint( Point (raio * -sin(rad), altura, raio * cos(rad)));
+        addPoint( Point (raio * -sinf(rad), altura, raio * cosf(rad)));
         //Ponto C
         i++;
         rad = i * alpha * M_PI / 180.0;
-        addPoint( Point (raio * -sin(rad), altura, raio * cos(rad)));
+        addPoint( Point (raio * -sinf(rad), altura, raio * cosf(rad)));
         i--;
       }
     }
@@ -638,7 +740,7 @@ class Model {
 
       //desenha as camadas laterias
       for (int j = 0; j <= camadas; j++){
-        desenhaTriangulosEntreCamadas(raio - (j * ReducaoRaioPorAltura), raio - ((j + 1) * ReducaoRaioPorAltura), (j)* alturaPorCamadas, (j + 1)* alturaPorCamadas, fatias, camadas, j,1);
+        desenhaTriangulosEntreCamadas ( raio, raio - (j * ReducaoRaioPorAltura), raio - ((j + 1) * ReducaoRaioPorAltura), (j)* alturaPorCamadas, (j + 1)* alturaPorCamadas, fatias, camadas, j,1);
       }
     }
 
@@ -651,7 +753,7 @@ class Model {
       int camadasInt = (int) camadas;
 
       //desenha a parte superior da esfera
-      for (int j = 0; j <= camadasInt / 2; j++){
+      for (int j = 0; j < camadasInt / 2; j++){
         raioAnterior = raioAtual;
         alturaAtual = (alturaPorCamadas*(j + 1));
         if (raio <= alturaAtual){
@@ -660,16 +762,16 @@ class Model {
         else{
           raioAtual = sqrt((raio*raio) - (alturaAtual*alturaAtual));
         }
-        desenhaTriangulosEntreCamadas(raioAnterior, raioAtual, (j)* alturaPorCamadas, (j + 1)* alturaPorCamadas, fatias, camadas, j, 1);
+        desenhaTriangulosEntreCamadas( raio , raioAnterior, raioAtual, (j)* alturaPorCamadas, (j + 1)* alturaPorCamadas, fatias, camadas, j, 1);
       }
       //desenha parte inferior da esfera
       alturaPorCamadas = -alturaPorCamadas;
       raioAtual = raio;
-      for (int j = 0; j <= camadas / 2; j++){
+      for (int j = 0; j < camadasInt / 2; j++){
         raioAnterior = raioAtual;
         alturaAtual = (alturaPorCamadas*(j + 1));
         raioAtual = sqrt((raio*raio) - (alturaAtual*alturaAtual));
-        desenhaTriangulosEntreCamadas(raioAnterior, raioAtual, (j)* alturaPorCamadas, (j + 1)* alturaPorCamadas, fatias, camadas, j, -1);
+        desenhaTriangulosEntreCamadas( raio , raioAnterior, raioAtual, (j)* alturaPorCamadas, (j + 1)* alturaPorCamadas, fatias, camadas, j, -1);
       }
     }
 };

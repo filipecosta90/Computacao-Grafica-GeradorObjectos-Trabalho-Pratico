@@ -39,6 +39,8 @@ int main( int argc, char* argv[] ){
       if (argc == 6){
         //esfera raio fatias camadas nomeficheiro
         model.createSphere(atof(argv[2]), atof(argv[3]), atof(argv[4]));
+		std::cout << "\ttesting normal vector size: " << model.testSizeNormalVector() << "\n";
+		std::cout << "\ttesting texture vector size: " << model.testSizeTextureVector() << "\n";
         model.save(argv[5]);
       }
       else { parametersOk = false; }

@@ -23,6 +23,11 @@ class Point {
     Point (){
     }
 
+	Point(float aX, float aY) {
+		x = aX;
+		y = aY;
+		z = 0.0f;
+	}
 };
 
 #endif /* _POINT_H_INCLUDED_ */
