@@ -487,22 +487,37 @@ class Model {
           //PONTO D -- vamos guardar
           float radCeD = getValorRad(raio, fatias, k + 1);
 
+		  float Ux, Uy, Uz;
+		  float Vx, Vy, Vz;
+
+		  if (factor == -1){
           // vector U = point C - point A;
-          float Ux, Uy, Uz;
           Ux = raioCamadaCima * sinf(radCeD) - raio * sinf(rad);
           Uy = alturaCamadaCima - altura;
           Uz = raioCamadaCima * cosf(radCeD) - raio * cosf(rad);
 
           // vectorV = point C - point B;
-          float Vx, Vy, Vz;
           Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
           Vy = alturaCamadaCima - alturaCamadaCima;
           Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
+		  
+		  }
+		  else{
+			  // vector U = point D - point B;
+			  Ux = raio * sinf(radCeD) - raioCamadaCima * sinf(rad);
+			  Uy = altura - alturaCamadaCima;
+			  Uz = raio * cosf(radCeD) - raioCamadaCima * cosf(rad);
+
+			  // vectorV = point C - point B;
+			  Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
+			  Vy = alturaCamadaCima - alturaCamadaCima;
+			  Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
+		  }
 
           // normal vector
           float Nx, Ny, Nz;
           Nx = Uy * Vz - Uz *Vy;
-          Ny = Uz * Vx - Ux * Vz;
+          Ny =- ( Uz * Vx - Ux * Vz );
           Nz = Ux * Vy - Uy *Vx;
 
           // calculate the length of the vector
@@ -519,6 +534,7 @@ class Model {
 
           Point normalPoint = Point(Nx, Ny, Nz);
 
+		  //texture points
           float aX, aY, bX, bY, cX, cY, dX, dY;
 
           float alturaRaio = altura / raioOriginal;
@@ -534,17 +550,11 @@ class Model {
           yBC = 0.5f + 0.5f * yBC;
           bY = cY = yBC;
 
-
-          float xAB = atanf(rad);
-          xAB = xAB / ( M_PI_2 );
+		  float xAB = rad * 180 / (360 * M_PI);
           aX = bX = xAB;
 
-          float xCD = atanf(radCeD);
-          xCD = xCD / ( M_PI_2 );
+		  float xCD = radCeD * 180 / (360 * M_PI);
           cX = dX = xCD;
-
-          std::cout << xAB << "\t" << xCD << "\n";
-          //std::cout << xAB << " " << xAB << " " << yAD << " " << yBC << " " << radCeD << "\n";
 
           if (factor == 1){
             //Ponto A
@@ -617,47 +627,61 @@ class Model {
           rad = getValorRad(raio, fatias, k);
           float radCeD = getValorRad(raio, fatias, k + 1);
 
-          float aX, aY, bX, bY, cX, cY, dX, dY;
+		  //texture points
+		  float aX, aY, bX, bY, cX, cY, dX, dY;
 
-          float alturaRaio = altura / raioOriginal;
-          float alturaRaioCima = alturaCamadaCima / raioOriginal;
+		  float alturaRaio = altura / raioOriginal;
+		  float alturaRaioCima = alturaCamadaCima / raioOriginal;
 
-          float yAD = (float)asinf(alturaRaio);
-          yAD = yAD / M_PI_2;
-          yAD = 0.5f + 0.5f * yAD;
-          aY = dY = yAD;
+		  float yAD = (float)asinf(alturaRaio);
+		  yAD = yAD / M_PI_2;
+		  yAD = 0.5f + 0.5f * yAD;
+		  aY = dY = yAD;
 
-          float yBC = (float)asinf(alturaRaioCima);
-          yBC = yBC / M_PI_2;
-          yBC = 0.5f + 0.5f * yBC;
-          bY = cY = yBC;
+		  float yBC = (float)asinf(alturaRaioCima);
+		  yBC = yBC / M_PI_2;
+		  yBC = 0.5f + 0.5f * yBC;
+		  bY = cY = yBC;
 
-          float xAB = atanf(rad);
-          xAB = xAB / M_PI_2;
-          aX = bX = xAB;
+		  float xAB = rad * 180 / (360 * M_PI);
+		  aX = bX = xAB;
 
-          float xCD = atanf(radCeD);
-          xCD = xCD / M_PI_2;
-          cX = dX = xCD;
+		  float xCD = radCeD * 180 / (360 * M_PI);
+		  cX = dX = xCD;
 
           //camada superior da esfera
-          // vector U = point C - point A;
-          float Ux, Uy, Uz;
-          Ux = 0.0f - raio * sinf(rad);
-          Uy = alturaCamadaCima - altura;
-          Uz = 0.0f - raio * cosf(rad);
+		  float Ux, Uy, Uz;
+		  float Vx, Vy, Vz;
 
-          // vectorV = point C - point D;
-          float Vx, Vy, Vz;
-          Vx = 0.0f - raio * sinf(radCeD);
-          Vy = alturaCamadaCima - altura;
-          Vz = 0.0f - raio * cosf(radCeD);
+		  if (factor == -1){
+			  // vector U = point C - point A;
+			  Ux = raioCamadaCima * sinf(radCeD) - raio * sinf(rad);
+			  Uy = alturaCamadaCima - altura;
+			  Uz = raioCamadaCima * cosf(radCeD) - raio * cosf(rad);
+
+			  // vectorV = point C - point B;
+			  Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
+			  Vy = alturaCamadaCima - alturaCamadaCima;
+			  Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
+
+		  }
+		  else{
+			  // vector U = point D - point B;
+			  Ux = raio * sinf(radCeD) - raioCamadaCima * sinf(rad);
+			  Uy = altura - alturaCamadaCima;
+			  Uz = raio * cosf(radCeD) - raioCamadaCima * cosf(rad);
+
+			  // vectorV = point C - point B;
+			  Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
+			  Vy = alturaCamadaCima - alturaCamadaCima;
+			  Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
+		  }
 
           // normal vector
           float Nx, Ny, Nz;
           Nx = Uy * Vz - Uz *Vy;
-          Ny = Uz * Vx - Ux * Vz;
-          Nz = Ux * Vy - Uy *Vx;
+		  Ny = -(Uz * Vx - Ux * Vz);
+		  Nz = Ux * Vy - Uy *Vx;
 
           // calculate the length of the vector
           float len = (float)(sqrt((Nx * Nx) + (Ny * Ny) + (Nz * Nz)));
@@ -686,10 +710,10 @@ class Model {
 
             //Ponto C
             addPoint( Point (0.0, alturaCamadaCima, 0.0));
-            addNormalPoint(normalPoint);
-            addTexturePoint(Point(cX, cY));
-
+			addNormalPoint(normalPoint);
+			addTexturePoint(Point(cX, cY));
           }
+
           //camada inferior da esfera
           else if (factor == -1){
             //Ponto A
@@ -699,8 +723,8 @@ class Model {
 
             //Ponto C
             addPoint( Point (0.0, alturaCamadaCima, 0.0));
-            addNormalPoint(normalPoint);
-            addTexturePoint(Point(cX, cY));
+			addNormalPoint ( normalPoint );
+			addTexturePoint(Point(cX, cY));
 
             //Ponto D
             addPoint( Point (raio *  sinf(radCeD), altura, raio * cosf(radCeD)));
