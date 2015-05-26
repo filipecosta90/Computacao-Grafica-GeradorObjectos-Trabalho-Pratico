@@ -15,6 +15,8 @@ int main( int argc, char* argv[] ){
       if (argc == 7){
         //plano comprimento largura camadasComprimento camadasLargura nomeficheiro
         model.planoXZ_Yfixo(atof(argv[2]), 0, atof(argv[3]), atof(argv[4]), atof(argv[5]), 1);
+        std::cout << "\ttesting normal vector size: " << model.testSizeNormalVector() << "\n";
+        std::cout << "\ttesting texture vector size: " << model.testSizeTextureVector() << "\n";
         model.save(argv[6]);
       }
       else{ parametersOk = false; }
@@ -23,6 +25,8 @@ int main( int argc, char* argv[] ){
       //paralelipipedo comprimento altura largura camadasComprimento camadasAltura camadasLargura nomeficheiro
       if (argc == 9){
         model.createParallelepipe(atof(argv[2]), atof(argv[3]), atof(argv[4]), atof(argv[5]), atof(argv[6]), atof(argv[7]));
+        std::cout << "\ttesting normal vector size: " << model.testSizeNormalVector() << "\n";
+        std::cout << "\ttesting texture vector size: " << model.testSizeTextureVector() << "\n";
         model.save(argv[8]);
       }
       else { parametersOk = false; }
@@ -31,6 +35,7 @@ int main( int argc, char* argv[] ){
       if (argc == 7){
         //cone raio altura fatias camadas nomeficheiro
         model.createCone(atof(argv[2]), atof(argv[3]), atof(argv[4]), atof(argv[5]));
+        std::cout << "\ttesting normal vector size: " << model.testSizeNormalVector() << "\n";
         model.save(argv[6]);
       }
       else { parametersOk = false; }

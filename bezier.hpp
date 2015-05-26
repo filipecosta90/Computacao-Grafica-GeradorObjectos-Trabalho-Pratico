@@ -50,8 +50,8 @@ Point getBezierAtTime( float t, std::vector<Point> points){
   return r;
 }
 
-Point computePosition( std::vector<std::vector<Point>> ControlPoints, float u, float v) {
-  Point result = { 0.0f, 0.0f , 0.0f };
+Point computePosition( std::vector< std::vector<Point> > ControlPoints, float u, float v) {
+  Point result ( 0.0f, 0.0f , 0.0f );
   int outterOrder = ControlPoints.size() -1;
   for (int i = 0; i <= outterOrder ; i++) {
     int order = ControlPoints[i].size() - 1 ;

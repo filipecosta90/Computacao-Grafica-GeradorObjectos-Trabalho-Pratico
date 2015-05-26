@@ -46,16 +46,10 @@ class Model {
     bool normalVectorDefined;
     bool textureVectorDefined;
 
-    int textureWidth;
-    int textureHeight;
-
-
     Model ( ) {
       numberPatches = 0;
       normalVectorDefined = false;
       textureVectorDefined = false;
-      textureHeight = 512;
-      textureWidth = 1024;
     }
 
     Model ( std::string mName ){
@@ -63,8 +57,6 @@ class Model {
       numberPatches = 0;
       normalVectorDefined = false;
       textureVectorDefined = false;
-      textureHeight = 512;
-      textureWidth = 1024;
     }
 
     void addPoint( Point p ){
@@ -162,10 +154,9 @@ class Model {
       patchesVectorIterator=patchesVector.begin();
 
       for ( ; patchesVectorIterator != patchesVector.end(); ++patchesVectorIterator ){
-        std::vector<std::vector <Point>> BezierLines;
+        std::vector< std::vector <Point> > BezierLines;
 
         //first get the correct points for bezier lines
-        int patchSize = patchesVectorIterator->size();
         for ( int lineNumber = 1; lineNumber <=4 ; lineNumber++ ){
           std::vector <Point> BezierLine;
           for ( int patchPosition = 4*(lineNumber-1) ; patchPosition < 4*lineNumber ; patchPosition++ ){
@@ -241,13 +232,27 @@ class Model {
       TiXmlElement* pElem, *nElem, *tElem;
       TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
       doc.LinkEndChild( decl );
+      bool testNormal, testTexture;
+      testNormal = testTexture = false;
 
-      TiXmlElement * root = new TiXmlElement(modelName.c_str());  
+      TiXmlElement * root = new TiXmlElement(modelName.c_str());
       if (normalVectorDefined){
-        root->SetAttribute("defNormal", true);
+        testNormal = testSizeNormalVector();
+        if ( testNormal == false ){
+          std::cout << "\t something wen't wrong on the normalVector Size! not going to save normal points!\n";
+        }
+        else {
+          root->SetAttribute("defNormal", true);
+        }
       }
       if (textureVectorDefined){
-        root->SetAttribute("defTextura", true);
+        testTexture = testSizeTextureVector();
+        if ( testTexture == false ){
+          std::cout << "\t something wen't wrong on the textureVector Size! not going to save texture points!\n";
+        }
+        else {
+          root->SetAttribute("defTextura", true);
+        }
       }
 
       doc.LinkEndChild( root );
@@ -260,14 +265,14 @@ class Model {
         pElem->SetDoubleAttribute ("y", pointsVector.at(pos).y);
         pElem->SetDoubleAttribute ("z", pointsVector.at(pos).z);
         root->LinkEndChild( pElem );
-        if (normalVectorDefined){
+        if (normalVectorDefined && testNormal ){
           nElem = new TiXmlElement("normal");
           nElem->SetDoubleAttribute("x", normalVector.at(pos).x);
           nElem->SetDoubleAttribute("y", normalVector.at(pos).y);
           nElem->SetDoubleAttribute("z", normalVector.at(pos).z);
           root->LinkEndChild(nElem);
         }
-        if (textureVectorDefined){
+        if (textureVectorDefined && testTexture ){
           tElem = new TiXmlElement("textura");
           tElem->SetDoubleAttribute("x", textureVector.at(pos).x);
           tElem->SetDoubleAttribute("y", textureVector.at(pos).y);
@@ -279,31 +284,53 @@ class Model {
 
 
     void planoXZ_Yfixo(float comprimento, float altura, float largura, float fatiasComprimento, float fatiasLargura, int factor){
-      // pôr instruções de desenho aqui
 
       float distanciaFatiasLargura = largura / fatiasLargura;
       float distanciaFatiasComprimento = comprimento / fatiasComprimento;
 
+      float distanciaFatiasLarguraUnitario = 1.0f / fatiasLargura;
+      float distanciaFatiasComprimentoUnitario = 1.0f / fatiasComprimento;
+
+
       for (float posicaoLargura = -(fatiasLargura / 2); posicaoLargura < fatiasLargura / 2; posicaoLargura++){
         for (float posicaoComprimento = -(fatiasComprimento / 2); posicaoComprimento < fatiasComprimento / 2; posicaoComprimento++){
+
           //ponto A
           addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+          if (factor == 1){
+            addNormalPoint ( Point ( 0.0f , 1.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , 1.0f - posicaoLargura * distanciaFatiasLarguraUnitario ) );
+          }
+          else if (factor == -1){
+            addNormalPoint ( Point ( 0.0f , -1.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , 1.0f - posicaoLargura * distanciaFatiasLarguraUnitario ) );
+          }
+
           if (factor == 1){
             //ponto B
             posicaoLargura++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( 0.0f , 1.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , 1.0f - posicaoLargura * distanciaFatiasLarguraUnitario ) );
+
             //ponto C
             posicaoComprimento++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( 0.0f , 1.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , 1.0f - posicaoLargura * distanciaFatiasLarguraUnitario ) );
           }
           else if (factor == -1){
             //ponto C
             posicaoComprimento++;
             posicaoLargura++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( 0.0f , -1.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , 1.0f - posicaoLargura * distanciaFatiasLarguraUnitario ) );
             //ponto B
             posicaoComprimento--;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( 0.0f , -1.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , 1.0f - posicaoLargura * distanciaFatiasLarguraUnitario ) );
             posicaoComprimento++;
           }
 
@@ -313,22 +340,41 @@ class Model {
           //ponto A
           addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
           if (factor == 1){
+            addNormalPoint ( Point ( 0.0f , 1.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , 1.0f - posicaoLargura * distanciaFatiasLarguraUnitario ) );
+          }
+          else if (factor == -1){
+            addNormalPoint ( Point ( 0.0f , -1.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , 1.0f - posicaoLargura * distanciaFatiasLarguraUnitario ) );
+          }
+
+
+          if (factor == 1){
             //ponto C
             posicaoLargura++;
             posicaoComprimento++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( 0.0f , 1.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , 1.0f - posicaoLargura * distanciaFatiasLarguraUnitario ) );
+
             //ponto D
             posicaoLargura--;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( 0.0f , 1.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , 1.0f - posicaoLargura * distanciaFatiasLarguraUnitario ) );
             posicaoComprimento--;
           }
           else if (factor == -1){
             //ponto D
             posicaoComprimento++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( 0.0f , -1.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , 1.0f - posicaoLargura * distanciaFatiasLarguraUnitario ) );
             //ponto C
             posicaoLargura++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, altura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( 0.0f , -1.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , 1.0f - posicaoLargura * distanciaFatiasLarguraUnitario ) );
             posicaoLargura--;
             posicaoComprimento--;
           }
@@ -340,19 +386,34 @@ class Model {
 
       float distanciaFatiasAltura = altura / fatiasAltura;
       float distanciaFatiasComprimento = comprimento / fatiasComprimento;
+      float distanciaFatiasAlturaUnitario = altura / fatiasAltura;
+      float distanciaFatiasComprimentoUnitario = comprimento / fatiasComprimento;
 
       for (float posicaoAltura = -(fatiasAltura / 2); posicaoAltura < fatiasAltura / 2; posicaoAltura++){
         for (float posicaoComprimento = -(fatiasComprimento / 2); posicaoComprimento < fatiasComprimento / 2; posicaoComprimento++){
           //ponto A
           addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
           if (factor == 1){
+            addNormalPoint ( Point ( 0.0f , 0.0f , 1.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , posicaoAltura * distanciaFatiasAlturaUnitario ) );
+          }
+          else if (factor == -1){
+            addNormalPoint ( Point ( 0.0f , 0.0f , -1.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , posicaoAltura * distanciaFatiasAlturaUnitario ) );
+          }
+
+          if (factor == 1){
             //ponto B
             posicaoComprimento++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            addNormalPoint ( Point ( 0.0f , 0.0f , 1.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , posicaoAltura * distanciaFatiasAlturaUnitario ) );
             //ponto C
             posicaoComprimento--;
             posicaoAltura++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            addNormalPoint ( Point ( 0.0f , 0.0f , 1.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , posicaoAltura * distanciaFatiasAlturaUnitario ) );
             posicaoAltura--;
           }
           else if (factor == -1){
@@ -360,23 +421,42 @@ class Model {
 
             posicaoAltura++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            addNormalPoint ( Point ( 0.0f , 0.0f , -1.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , posicaoAltura * distanciaFatiasAlturaUnitario ) );
             //ponto B
             posicaoAltura--;
             posicaoComprimento++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            addNormalPoint ( Point ( 0.0f , 0.0f , -1.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , posicaoAltura * distanciaFatiasAlturaUnitario ) );
             posicaoComprimento--;
           }
           //ponto C
           posicaoAltura++;
           addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
           if (factor == 1){
+            addNormalPoint ( Point ( 0.0f , 0.0f , 1.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , posicaoAltura * distanciaFatiasAlturaUnitario ) );
+          }
+          else if (factor == -1){
+            addNormalPoint ( Point ( 0.0f , 0.0f , -1.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , posicaoAltura * distanciaFatiasAlturaUnitario ) );
+          }
+
+          if (factor == 1){
             //ponto B
             posicaoAltura--;
             posicaoComprimento++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            addNormalPoint ( Point ( 0.0f , 0.0f , 1.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , posicaoAltura * distanciaFatiasAlturaUnitario ) );
+
             //ponto D
             posicaoAltura++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            addNormalPoint ( Point ( 0.0f , 0.0f , 1.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , posicaoAltura * distanciaFatiasAlturaUnitario ) );
+
             posicaoComprimento--;
             posicaoAltura--;
           }
@@ -384,9 +464,15 @@ class Model {
             //ponto D
             posicaoComprimento++;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            addNormalPoint ( Point ( 0.0f , 0.0f , -1.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , posicaoAltura * distanciaFatiasAlturaUnitario ) );
+
             //ponto B
             posicaoAltura--;
             addPoint( Point ( distanciaFatiasComprimento * posicaoComprimento, distanciaFatiasAltura * posicaoAltura, largura));
+            addNormalPoint ( Point ( 0.0f , 0.0f , -1.0f ) );
+            addTexturePoint ( Point ( posicaoComprimento * distanciaFatiasComprimentoUnitario , posicaoAltura * distanciaFatiasAlturaUnitario ) );
+
             posicaoComprimento--;
           }
         }
@@ -398,40 +484,78 @@ class Model {
       float distanciaFatiasAltura = altura / fatiasAltura;
       float distanciaFatiasLargura = largura / fatiasLargura;
 
+      float distanciaFatiasAlturaUnitario = altura / fatiasAltura;
+      float distanciaFatiasLarguraUnitario = largura / fatiasLargura;
+
       for (float posicaoAltura = -(fatiasAltura / 2); posicaoAltura < fatiasAltura / 2; posicaoAltura++){
         for (float posicaoLargura = -(fatiasLargura / 2); posicaoLargura < fatiasLargura / 2; posicaoLargura++){
           //ponto A
           addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
           if (factor == 1){
+            addNormalPoint ( Point ( 1.0f , 0.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoLargura * distanciaFatiasLarguraUnitario ,  posicaoAltura * distanciaFatiasAlturaUnitario ) );
+          }
+          else if (factor == -1){
+            addNormalPoint ( Point ( -1.0f , 0.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoLargura * distanciaFatiasLarguraUnitario ,  posicaoAltura * distanciaFatiasAlturaUnitario ) );
+          }
+
+          if (factor == 1){
             //ponto C
             posicaoAltura++;
             addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( 1.0f , 0.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoLargura * distanciaFatiasLarguraUnitario ,  posicaoAltura * distanciaFatiasAlturaUnitario ) );
+
             //ponto B
             posicaoAltura--;
             posicaoLargura++;
             addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( 1.0f , 0.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoLargura * distanciaFatiasLarguraUnitario ,  posicaoAltura * distanciaFatiasAlturaUnitario ) );
+
             posicaoLargura--;
           }
           else if (factor == -1){
             //ponto B
             posicaoLargura++;
             addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( -1.0f , 0.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoLargura * distanciaFatiasLarguraUnitario ,  posicaoAltura * distanciaFatiasAlturaUnitario ) );
+
             //ponto C
             posicaoLargura--;
             posicaoAltura++;
             addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( -1.0f , 0.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoLargura * distanciaFatiasLarguraUnitario ,  posicaoAltura * distanciaFatiasAlturaUnitario ) );
+
             posicaoAltura--;
           }
           //ponto C
           posicaoAltura++;
           addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
           if (factor == 1){
+            addNormalPoint ( Point ( 1.0f , 0.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoLargura * distanciaFatiasLarguraUnitario ,  posicaoAltura * distanciaFatiasAlturaUnitario ) );
+          }
+          else if (factor == -1){
+            addNormalPoint ( Point ( -1.0f , 0.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoLargura * distanciaFatiasLarguraUnitario ,  posicaoAltura * distanciaFatiasAlturaUnitario ) );
+          }
+
+          if (factor == 1){
             //ponto D
             posicaoLargura++;
             addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( 1.0f , 0.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoLargura * distanciaFatiasLarguraUnitario ,  posicaoAltura * distanciaFatiasAlturaUnitario ) );
+
             //ponto B
             posicaoAltura--;
             addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( 1.0f , 0.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoLargura * distanciaFatiasLarguraUnitario ,  posicaoAltura * distanciaFatiasAlturaUnitario ) );
             posicaoLargura--;
           }
           else if (factor == -1){
@@ -439,9 +563,14 @@ class Model {
             posicaoAltura--;
             posicaoLargura++;
             addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( -1.0f , 0.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoLargura * distanciaFatiasLarguraUnitario ,  posicaoAltura * distanciaFatiasAlturaUnitario ) );
+
             //ponto D
             posicaoAltura++;
             addPoint( Point ( comprimento, distanciaFatiasAltura * posicaoAltura, distanciaFatiasLargura * posicaoLargura));
+            addNormalPoint ( Point ( -1.0f , 0.0f , 0.0f ) );
+            addTexturePoint ( Point ( posicaoLargura * distanciaFatiasLarguraUnitario ,  posicaoAltura * distanciaFatiasAlturaUnitario ) );
             posicaoLargura--;
             posicaoAltura--;
           }
@@ -487,37 +616,37 @@ class Model {
           //PONTO D -- vamos guardar
           float radCeD = getValorRad(raio, fatias, k + 1);
 
-		  float Ux, Uy, Uz;
-		  float Vx, Vy, Vz;
+          float Ux, Uy, Uz;
+          float Vx, Vy, Vz;
 
-		  if (factor == -1){
-          // vector U = point C - point A;
-          Ux = raioCamadaCima * sinf(radCeD) - raio * sinf(rad);
-          Uy = alturaCamadaCima - altura;
-          Uz = raioCamadaCima * cosf(radCeD) - raio * cosf(rad);
+          if (factor == -1){
+            // vector U = point C - point A;
+            Ux = raioCamadaCima * sinf(radCeD) - raio * sinf(rad);
+            Uy = alturaCamadaCima - altura;
+            Uz = raioCamadaCima * cosf(radCeD) - raio * cosf(rad);
 
-          // vectorV = point C - point B;
-          Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
-          Vy = alturaCamadaCima - alturaCamadaCima;
-          Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
-		  
-		  }
-		  else{
-			  // vector U = point D - point B;
-			  Ux = raio * sinf(radCeD) - raioCamadaCima * sinf(rad);
-			  Uy = altura - alturaCamadaCima;
-			  Uz = raio * cosf(radCeD) - raioCamadaCima * cosf(rad);
+            // vectorV = point C - point B;
+            Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
+            Vy = alturaCamadaCima - alturaCamadaCima;
+            Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
 
-			  // vectorV = point C - point B;
-			  Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
-			  Vy = alturaCamadaCima - alturaCamadaCima;
-			  Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
-		  }
+          }
+          else{
+            // vector U = point D - point B;
+            Ux = raio * sinf(radCeD) - raioCamadaCima * sinf(rad);
+            Uy = altura - alturaCamadaCima;
+            Uz = raio * cosf(radCeD) - raioCamadaCima * cosf(rad);
+
+            // vectorV = point C - point B;
+            Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
+            Vy = alturaCamadaCima - alturaCamadaCima;
+            Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
+          }
 
           // normal vector
           float Nx, Ny, Nz;
           Nx = Uy * Vz - Uz *Vy;
-          Ny =- ( Uz * Vx - Ux * Vz );
+          Ny = ( - ( Uz * Vx - Ux * Vz ) );
           Nz = Ux * Vy - Uy *Vx;
 
           // calculate the length of the vector
@@ -534,7 +663,7 @@ class Model {
 
           Point normalPoint = Point(Nx, Ny, Nz);
 
-		  //texture points
+          //texture points
           float aX, aY, bX, bY, cX, cY, dX, dY;
 
           float alturaRaio = altura / raioOriginal;
@@ -550,10 +679,10 @@ class Model {
           yBC = 0.5f + 0.5f * yBC;
           bY = cY = yBC;
 
-		  float xAB = rad * 180 / (360 * M_PI);
+          float xAB = rad * 180 / (360 * M_PI);
           aX = bX = xAB;
 
-		  float xCD = radCeD * 180 / (360 * M_PI);
+          float xCD = radCeD * 180 / (360 * M_PI);
           cX = dX = xCD;
 
           if (factor == 1){
@@ -627,61 +756,61 @@ class Model {
           rad = getValorRad(raio, fatias, k);
           float radCeD = getValorRad(raio, fatias, k + 1);
 
-		  //texture points
-		  float aX, aY, bX, bY, cX, cY, dX, dY;
+          //texture points
+          float aX, aY, bX, bY, cX, cY, dX, dY;
 
-		  float alturaRaio = altura / raioOriginal;
-		  float alturaRaioCima = alturaCamadaCima / raioOriginal;
+          float alturaRaio = altura / raioOriginal;
+          float alturaRaioCima = alturaCamadaCima / raioOriginal;
 
-		  float yAD = (float)asinf(alturaRaio);
-		  yAD = yAD / M_PI_2;
-		  yAD = 0.5f + 0.5f * yAD;
-		  aY = dY = yAD;
+          float yAD = (float)asinf(alturaRaio);
+          yAD = yAD / M_PI_2;
+          yAD = 0.5f + 0.5f * yAD;
+          aY = dY = yAD;
 
-		  float yBC = (float)asinf(alturaRaioCima);
-		  yBC = yBC / M_PI_2;
-		  yBC = 0.5f + 0.5f * yBC;
-		  bY = cY = yBC;
+          float yBC = (float)asinf(alturaRaioCima);
+          yBC = yBC / M_PI_2;
+          yBC = 0.5f + 0.5f * yBC;
+          bY = cY = yBC;
 
-		  float xAB = rad * 180 / (360 * M_PI);
-		  aX = bX = xAB;
+          float xAB = rad * 180 / (360 * M_PI);
+          aX = bX = xAB;
 
-		  float xCD = radCeD * 180 / (360 * M_PI);
-		  cX = dX = xCD;
+          float xCD = radCeD * 180 / (360 * M_PI);
+          cX = dX = xCD;
 
           //camada superior da esfera
-		  float Ux, Uy, Uz;
-		  float Vx, Vy, Vz;
+          float Ux, Uy, Uz;
+          float Vx, Vy, Vz;
 
-		  if (factor == -1){
-			  // vector U = point C - point A;
-			  Ux = raioCamadaCima * sinf(radCeD) - raio * sinf(rad);
-			  Uy = alturaCamadaCima - altura;
-			  Uz = raioCamadaCima * cosf(radCeD) - raio * cosf(rad);
+          if (factor == -1){
+            // vector U = point C - point A;
+            Ux = raioCamadaCima * sinf(radCeD) - raio * sinf(rad);
+            Uy = alturaCamadaCima - altura;
+            Uz = raioCamadaCima * cosf(radCeD) - raio * cosf(rad);
 
-			  // vectorV = point C - point B;
-			  Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
-			  Vy = alturaCamadaCima - alturaCamadaCima;
-			  Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
+            // vectorV = point C - point B;
+            Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
+            Vy = alturaCamadaCima - alturaCamadaCima;
+            Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
 
-		  }
-		  else{
-			  // vector U = point D - point B;
-			  Ux = raio * sinf(radCeD) - raioCamadaCima * sinf(rad);
-			  Uy = altura - alturaCamadaCima;
-			  Uz = raio * cosf(radCeD) - raioCamadaCima * cosf(rad);
+          }
+          else{
+            // vector U = point D - point B;
+            Ux = raio * sinf(radCeD) - raioCamadaCima * sinf(rad);
+            Uy = altura - alturaCamadaCima;
+            Uz = raio * cosf(radCeD) - raioCamadaCima * cosf(rad);
 
-			  // vectorV = point C - point B;
-			  Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
-			  Vy = alturaCamadaCima - alturaCamadaCima;
-			  Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
-		  }
+            // vectorV = point C - point B;
+            Vx = raioCamadaCima * sinf(radCeD) - raioCamadaCima * sinf(rad);
+            Vy = alturaCamadaCima - alturaCamadaCima;
+            Vz = raioCamadaCima * cosf(radCeD) - raioCamadaCima * cosf(rad);
+          }
 
           // normal vector
           float Nx, Ny, Nz;
           Nx = Uy * Vz - Uz *Vy;
-		  Ny = -(Uz * Vx - Ux * Vz);
-		  Nz = Ux * Vy - Uy *Vx;
+          Ny = -(Uz * Vx - Ux * Vz);
+          Nz = Ux * Vy - Uy *Vx;
 
           // calculate the length of the vector
           float len = (float)(sqrt((Nx * Nx) + (Ny * Ny) + (Nz * Nz)));
@@ -710,8 +839,8 @@ class Model {
 
             //Ponto C
             addPoint( Point (0.0, alturaCamadaCima, 0.0));
-			addNormalPoint(normalPoint);
-			addTexturePoint(Point(cX, cY));
+            addNormalPoint(normalPoint);
+            addTexturePoint(Point(cX, cY));
           }
 
           //camada inferior da esfera
@@ -723,8 +852,8 @@ class Model {
 
             //Ponto C
             addPoint( Point (0.0, alturaCamadaCima, 0.0));
-			addNormalPoint ( normalPoint );
-			addTexturePoint(Point(cX, cY));
+            addNormalPoint ( normalPoint );
+            addTexturePoint(Point(cX, cY));
 
             //Ponto D
             addPoint( Point (raio *  sinf(radCeD), altura, raio * cosf(radCeD)));
@@ -745,12 +874,17 @@ class Model {
         rad = getValorRad(raio, fatias, i);
         //Ponto A
         addPoint( Point (0.0f, altura, 0.0f));
+        addNormalPoint ( Point ( 0.0f , -1.0f , 0.0f ) );
+
         //Ponto B
         addPoint( Point (raio * -sinf(rad), altura, raio * cosf(rad)));
+        addNormalPoint ( Point ( 0.0f , -1.0f , 0.0f ) );
+
         //Ponto C
         i++;
         rad = i * alpha * M_PI / 180.0;
         addPoint( Point (raio * -sinf(rad), altura, raio * cosf(rad)));
+        addNormalPoint ( Point ( 0.0f , -1.0f , 0.0f ) );
         i--;
       }
     }
